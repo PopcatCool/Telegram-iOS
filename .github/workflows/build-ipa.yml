@@ -1,0 +1,77 @@
+name: Build IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 340
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Select Xcode
+        run: |
+          XCODE_VERSION=$(python3 -c 'import json;print(json.load(open("versions.json"))["xcode"])')
+          XCODE_APP="/Applications/Xcode_${XCODE_VERSION}.app"
+          if [ -d "$XCODE_APP" ]; then
+            sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+            # the build needs a lot of disk, other Xcode versions are the biggest thing to drop
+            KEEP=$(realpath "$XCODE_APP")
+            for app in /Applications/Xcode*.app; do
+              [ "$(realpath "$app")" = "$KEEP" ] || sudo rm -rf "$app" || true
+            done
+          else
+            echo "Xcode $XCODE_VERSION is not on this runner, building with the default one"
+            echo "XCODE_OVERRIDE=--overrideXcodeVersion" >> "$GITHUB_ENV"
+          fi
+          xcodebuild -version
+          df -h /
+
+      - name: Write build configuration
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+        run: |
+          if [ -z "$TG_API_ID" ] || [ -z "$TG_API_HASH" ]; then
+            echo "Add TG_API_ID and TG_API_HASH in Settings -> Secrets and variables -> Actions" >&2
+            exit 1
+          fi
+          python3 - <<'EOF'
+          import json, os
+          # bundle_id and team_id stay untouched: the fake provisioning profiles are matched by them
+          with open("build-system/appstore-configuration.json") as f:
+              cfg = json.load(f)
+          cfg["api_id"] = os.environ["TG_API_ID"]
+          cfg["api_hash"] = os.environ["TG_API_HASH"]
+          cfg.setdefault("sg_config", "")
+          with open(os.path.join(os.environ["RUNNER_TEMP"], "configuration.json"), "w") as f:
+              json.dump(cfg, f)
+          EOF
+
+      - name: Build
+        run: |
+          BUILD_NUMBER=$((100000 + GITHUB_RUN_NUMBER))
+          python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
+          mkdir -p build/artifacts
+          python3 -u build-system/Make/Make.py $XCODE_OVERRIDE \
+            build \
+            --configurationPath="$RUNNER_TEMP/configuration.json" \
+            --codesigningInformationPath=build-system/fake-codesigning \
+            --configuration=release_arm64 \
+            --buildNumber="$BUILD_NUMBER" \
+            --outputBuildArtifactsPath=build/artifacts
+          ls -lh build/artifacts
+
+      - name: Disk usage
+        if: always()
+        run: df -h /
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Swiftgram-ipa
+          path: build/artifacts/Swiftgram.ipa
+          if-no-files-found: error
