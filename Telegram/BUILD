@@ -450,6 +450,7 @@ plist_fragment(
             <key>CFBundleURLSchemes</key>
             <array>
                 <string>sg</string>
+                <string>burmalda</string>
             </array>
         </dict>
     </array>
@@ -649,7 +650,7 @@ plist_fragment(
     template =
     """
     <key>CFBundleDisplayName</key>
-    <string>Swiftgram</string>
+    <string>Burmaldagram</string>
     """
 )
 
@@ -1737,7 +1738,7 @@ plist_fragment(
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleDisplayName</key>
-    <string>Swiftgram</string>
+    <string>Burmaldagram</string>
     <key>CFBundleIdentifier</key>
     <string>{telegram_bundle_id}</string>
     <key>CFBundleName</key>

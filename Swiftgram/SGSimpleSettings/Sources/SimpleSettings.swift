@@ -176,6 +176,12 @@ public class SGSimpleSettings {
         case warnOnStoriesOpen
         case showProfileId
         case sendWithReturnKey
+        // MARK: Burmaldagram
+        case ghostDontRead
+        case ghostDontSendOnline
+        case ghostDontSendTyping
+        case ghostDontSendPlayed
+        case keepDeletedMessages
     }
     
     public enum DownloadSpeedBoostValues: String, CaseIterable {
@@ -328,7 +334,13 @@ public class SGSimpleSettings {
         Keys.hideStories.rawValue: false,
         Keys.warnOnStoriesOpen.rawValue: false,
         Keys.showProfileId.rawValue: true,
-        Keys.sendWithReturnKey.rawValue: false
+        Keys.sendWithReturnKey.rawValue: false,
+        // MARK: Burmaldagram
+        Keys.ghostDontRead.rawValue: false,
+        Keys.ghostDontSendOnline.rawValue: false,
+        Keys.ghostDontSendTyping.rawValue: false,
+        Keys.ghostDontSendPlayed.rawValue: false,
+        Keys.keepDeletedMessages.rawValue: false
     ]
     
     public static let groupDefaultValues: [String: Any] = [
@@ -592,6 +604,22 @@ public class SGSimpleSettings {
     
     @UserDefault(key: Keys.tabBarSearchEnabled.rawValue)
     public var tabBarSearchEnabled: Bool
+
+    // MARK: Burmaldagram
+    @UserDefault(key: Keys.ghostDontRead.rawValue)
+    public var ghostDontRead: Bool
+
+    @UserDefault(key: Keys.ghostDontSendOnline.rawValue)
+    public var ghostDontSendOnline: Bool
+
+    @UserDefault(key: Keys.ghostDontSendTyping.rawValue)
+    public var ghostDontSendTyping: Bool
+
+    @UserDefault(key: Keys.ghostDontSendPlayed.rawValue)
+    public var ghostDontSendPlayed: Bool
+
+    @UserDefault(key: Keys.keepDeletedMessages.rawValue)
+    public var keepDeletedMessages: Bool
 }
 
 extension SGSimpleSettings {

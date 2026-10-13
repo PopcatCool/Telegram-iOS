@@ -447,6 +447,21 @@ func openExternalUrlImpl(context: AccountContext, urlContext: OpenURLContext, ur
                         context.sharedContext.applicationBindings.dismissNativeController()
                         context.sharedContext.navigateToChat(accountId: AccountRecordId(rawValue: accountId), peerId: peerId, messageId: nil)
                     }
+                // MARK: Burmaldagram
+                // burmalda://openchat?id=<id>, where id is a Bot API style chat id: user id, -group id or -100<channel id>
+                case "openchat":
+                    if let idValue = params["id"].flatMap(Int64.init) {
+                        let peerId: EnginePeer.Id
+                        if idValue <= -1000000000000 {
+                            peerId = EnginePeer.Id(namespace: Namespaces.Peer.CloudChannel, id: EnginePeer.Id.Id._internalFromInt64Value(-idValue - 1000000000000))
+                        } else if idValue < 0 {
+                            peerId = EnginePeer.Id(namespace: Namespaces.Peer.CloudGroup, id: EnginePeer.Id.Id._internalFromInt64Value(-idValue))
+                        } else {
+                            peerId = EnginePeer.Id(namespace: Namespaces.Peer.CloudUser, id: EnginePeer.Id.Id._internalFromInt64Value(idValue))
+                        }
+                        context.sharedContext.applicationBindings.dismissNativeController()
+                        context.sharedContext.navigateToChat(accountId: context.account.id, peerId: peerId, messageId: nil)
+                    }
                 case "join":
                     if let invite = params["invite"] {
                         convertedUrl = makeTelegramUrl("/joinchat/\(invite)")

@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import SwiftSignalKit
@@ -319,6 +320,11 @@ private class ReplyThreadHistoryContextImpl {
         let threadId = self.threadId
         
         if messageIndex.id.namespace != Namespaces.Message.Cloud {
+            return
+        }
+
+        // MARK: Burmaldagram
+        if SGSimpleSettings.shared.ghostDontRead {
             return
         }
 

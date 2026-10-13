@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import TelegramApi
 import Postbox
@@ -53,7 +54,9 @@ private final class AccountPresenceManagerImpl {
             }, queue: self.queue)
             self.onlineTimer = timer
             timer.start()
-            request = self.network.request(Api.functions.account.updateStatus(offline: .boolFalse))
+            // MARK: Burmaldagram
+            // In ghost mode the periodic ping reports "offline" instead, which also resets the online status the server sets after sending a message
+            request = self.network.request(Api.functions.account.updateStatus(offline: SGSimpleSettings.shared.ghostDontSendOnline ? .boolTrue : .boolFalse))
         } else {
             self.onlineTimer?.invalidate()
             self.onlineTimer = nil

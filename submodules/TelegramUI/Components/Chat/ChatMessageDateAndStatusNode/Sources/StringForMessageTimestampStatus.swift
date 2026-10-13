@@ -248,5 +248,13 @@ public func stringForMessageTimestampStatus(
         }
     }
     
+    // MARK: Burmaldagram
+    for attribute in message.attributes {
+        if attribute is DeletedByOthersMessageAttribute {
+            dateText = "🗑 \(dateText)"
+            break
+        }
+    }
+    
     return dateText
 }

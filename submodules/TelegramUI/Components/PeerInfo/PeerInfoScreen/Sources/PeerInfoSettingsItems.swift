@@ -229,6 +229,10 @@ func settingsItems(showProfileId: Bool, data: PeerInfoScreenData?, context: Acco
     items[.swiftgram]!.append(PeerInfoScreenDisclosureItem(id: 1, label: swiftgramLabel, text: "Swiftgram", icon: PresentationResourcesSettings.swiftgram, action: {
         interaction.openSettings(.swiftgram)
     }))
+    // MARK: Burmaldagram
+    items[.swiftgram]!.append(PeerInfoScreenDisclosureItem(id: 2, label: .none, text: "Burmaldagram", icon: PresentationResourcesSettings.lockOrange, action: {
+        interaction.openSettings(.burmaldagram)
+    }))
 
     var appIndex = 1000
     if let settings = data.globalSettings {

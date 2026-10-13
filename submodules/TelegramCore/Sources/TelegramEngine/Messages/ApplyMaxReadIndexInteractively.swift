@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import TelegramApi
@@ -9,8 +10,13 @@ func _internal_applyMaxReadIndexInteractively(postbox: Postbox, stateManager: Ac
         _internal_applyMaxReadIndexInteractively(transaction: transaction, stateManager: stateManager, index: index)
     }
 }
-    
+
 func _internal_applyMaxReadIndexInteractively(transaction: Transaction, stateManager: AccountStateManager, index: MessageIndex) {
+    // MARK: Burmaldagram
+    // Viewing a chat does not mark it as read in ghost mode; explicit "Mark as Read" and sending a message still do
+    if SGSimpleSettings.shared.ghostDontRead {
+        return
+    }
     let messageIds = transaction.applyInteractiveReadMaxIndex(index)
     
     if let peer = transaction.getPeer(index.id.peerId), peer.isForumOrMonoForum {

@@ -55,6 +55,8 @@ jobs:
           cfg["team_id"] = store["team_id"]
           cfg["api_id"] = os.environ["TG_API_ID"]
           cfg["api_hash"] = os.environ["TG_API_HASH"]
+          # own URL scheme, so links from the Bark relay open this app and not the official Telegram
+          cfg["app_specific_url_scheme"] = "burmalda"
           with open(os.path.join(os.environ["RUNNER_TEMP"], "configuration.json"), "w") as f:
               json.dump(cfg, f)
           EOF

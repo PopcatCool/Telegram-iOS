@@ -1,3 +1,4 @@
+import SGSimpleSettings
 import Foundation
 import Postbox
 import TelegramApi
@@ -101,6 +102,11 @@ func _internal_installInteractiveReadMessagesAction(postbox: Postbox, stateManag
             }
         }
         
+        // MARK: Burmaldagram
+        if SGSimpleSettings.shared.ghostDontRead {
+            readMessageIndexByNamespace.removeAll()
+        }
+
         for (_, index) in readMessageIndexByNamespace {
             if let threadId {
                 var newCountIsZero = false
