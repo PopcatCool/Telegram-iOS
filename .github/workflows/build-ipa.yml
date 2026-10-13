@@ -24,6 +24,9 @@ jobs:
             for app in /Applications/Xcode*.app; do
               [ "$(realpath "$app")" = "$KEEP" ] || sudo rm -rf "$app" || true
             done
+            # third-party build scripts (dav1d etc.) hardcode /Applications/Xcode.app
+            [ "$KEEP" = "/Applications/Xcode.app" ] || sudo ln -sfn "$KEEP" /Applications/Xcode.app
+            ls -ld /Applications/Xcode*.app
           else
             echo "Xcode $XCODE_VERSION is not on this runner, building with the default one"
             echo "XCODE_OVERRIDE=--overrideXcodeVersion" >> "$GITHUB_ENV"
