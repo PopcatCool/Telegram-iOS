@@ -45,22 +45,36 @@ jobs:
           fi
           python3 - <<'EOF'
           import json, os
-          # bundle_id and team_id stay untouched: the fake provisioning profiles are matched by them
-          with open("build-system/appstore-configuration.json") as f:
+          # development template: iCloud and Siri are off, a free Apple ID cannot sign those entitlements
+          with open("build-system/template_minimal_development_configuration.json") as f:
               cfg = json.load(f)
+          # bundle_id and team_id come from the appstore config: the fake provisioning profiles are matched by them
+          with open("build-system/appstore-configuration.json") as f:
+              store = json.load(f)
+          cfg["bundle_id"] = store["bundle_id"]
+          cfg["team_id"] = store["team_id"]
           cfg["api_id"] = os.environ["TG_API_ID"]
           cfg["api_hash"] = os.environ["TG_API_HASH"]
-          cfg.setdefault("sg_config", "")
           with open(os.path.join(os.environ["RUNNER_TEMP"], "configuration.json"), "w") as f:
               json.dump(cfg, f)
           EOF
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/telegram-bazel-cache
+          key: bazel-${{ github.run_id }}
+          restore-keys: |
+            bazel-
 
       - name: Build
         run: |
           BUILD_NUMBER=$((100000 + GITHUB_RUN_NUMBER))
           python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
           mkdir -p build/artifacts
+          # every app extension costs one of the 10 weekly App IDs of a free Apple ID
+          printf '\nbuild --//Telegram:disableExtensions\n' >> .bazelrc
           python3 -u build-system/Make/Make.py $XCODE_OVERRIDE \
+            --cacheDir="$HOME/telegram-bazel-cache" \
             build \
             --configurationPath="$RUNNER_TEMP/configuration.json" \
             --codesigningInformationPath=build-system/fake-codesigning \
