@@ -1,0 +1,11 @@
+{
+  "api_id": "",
+  "api_hash": "",
+  "bark_key": "",
+  "bark_server": "https://api.day.app",
+  "url_scheme": "burmalda",
+  "icon_url": "",
+  "skip_muted": true,
+  "notify_channels": false,
+  "hide_text": false
+}
