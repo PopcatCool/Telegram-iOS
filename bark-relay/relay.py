@@ -21,7 +21,7 @@ QR_PAGE_PATH = BASE_DIR / "login-qr.html"
 # chats that currently have a notification in Bark, with the number of messages it covers
 UNREAD_PATH = BASE_DIR / "notified.json"
 # Bark caches the icon by URL: change the file name when the icon changes
-DEFAULT_ICON_URL = "https://raw.githubusercontent.com/PopcatCool/Telegram-iOS/master/bark-relay/icon.png"
+DEFAULT_ICON_URL = "https://raw.githubusercontent.com/PopcatCool/Telegram-iOS/master/bark-relay/icon-sparkling.png"
 MUTE_CACHE_SECONDS = 600
 
 
