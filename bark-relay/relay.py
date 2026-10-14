@@ -4,8 +4,11 @@ Runs as an extra session of your account. It only listens: it never marks
 anything as read and never reports the account as online.
 """
 import asyncio
+import base64
 import json
 import os
+import secrets
+import string
 import sys
 import time
 import urllib.request
@@ -13,6 +16,7 @@ from datetime import datetime, timezone
 from getpass import getpass
 from pathlib import Path
 
+import pyaes
 from telethon import TelegramClient, errors, events, functions, types, utils
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -33,6 +37,8 @@ def load_config():
     for key in ("api_id", "api_hash", "bark_key"):
         if not config.get(key):
             sys.exit(f"В config.json не заполнено поле {key}")
+    if config.get("encryption_key") and len(config["encryption_key"].encode("utf-8")) not in (16, 24, 32):
+        sys.exit("encryption_key должен быть длиной 16, 24 или 32 символа (AES-128, AES-192 или AES-256)")
     return config
 
 
@@ -113,6 +119,15 @@ def describe(message):
     return "Сообщение"
 
 
+def encrypted(fields):
+    """Encrypts the push content the way the Bark app expects: AES-CBC, PKCS7, base64, random IV sent alongside."""
+    iv = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(16))
+    encrypter = pyaes.Encrypter(pyaes.AESModeOfOperationCBC(config["encryption_key"].encode("utf-8"), iv=iv.encode("ascii")))
+    data = json.dumps(fields, ensure_ascii=False).encode("utf-8")
+    ciphertext = encrypter.feed(data) + encrypter.feed()
+    return {"ciphertext": base64.b64encode(ciphertext).decode("ascii"), "iv": iv}
+
+
 def send_to_bark(payload):
     request = urllib.request.Request(
         config.get("bark_server", "https://api.day.app").rstrip("/") + "/push",
@@ -135,9 +150,7 @@ async def on_message(event):
         sender = await event.get_sender()
         chat_title = utils.get_display_name(chat) or "Telegram"
         count = unread_counts.get(event.chat_id, 0) + 1
-        payload = {
-            "device_key": config["bark_key"],
-            "id": notification_id(event.chat_id),
+        content = {
             "title": chat_title if count == 1 else f"{chat_title} ({count})",
             "body": "Новое сообщение" if config.get("hide_text", False) else describe(event.message)[:500],
             "group": str(event.chat_id),
@@ -145,7 +158,10 @@ async def on_message(event):
             "url": f"{config.get('url_scheme', 'burmalda')}://openchat?id={event.chat_id}",
         }
         if event.is_group and sender is not None:
-            payload["subtitle"] = utils.get_display_name(sender)
+            content["subtitle"] = utils.get_display_name(sender)
+        # device_key and id stay readable: the Bark server needs them to route and replace the notification
+        payload = {"device_key": config["bark_key"], "id": notification_id(event.chat_id)}
+        payload.update(encrypted(content) if config.get("encryption_key") else content)
         await asyncio.to_thread(send_to_bark, payload)
         unread_counts[event.chat_id] = count
         save_unread_counts()

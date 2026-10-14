@@ -5,6 +5,7 @@
   "bark_server": "https://api.day.app",
   "url_scheme": "burmalda",
   "icon_url": "",
+  "encryption_key": "",
   "skip_muted": true,
   "notify_channels": false,
   "hide_text": false
